@@ -9,4 +9,9 @@ sudo apt-get install -y git && \
 git clone https://github.com/badcf00d/pi-server-setup.git && \
 cd pi-server-setup && \
 ./main.sh
+
+#### ssh into the newly created user
+git clone https://github.com/badcf00d/pi-server-setup.git && \
+cd pi-server-setup && \
+./main.sh
 ```
