@@ -108,7 +108,7 @@ echo "#### Exporting nginx config"
 sudo sh -c "cat ${HOME}/pi-server-setup/nginx_config > /etc/nginx/nginx.conf"
 
 echo "#### Exporting extra nginx mime types"
-sudo perl -i -pe 's/application\/font-woff.*\n//' /etc/nginx/mime.types
+sudo perl -i -pe 's/application\/font-woff.*//' /etc/nginx/mime.types
 sudo perl -i -pe 's/}//' /etc/nginx/mime.types
 sudo sh -c "cat ${HOME}/pi-server-setup/nginx_extra_mime_types >> /etc/nginx/mime.types"
 sudo sh -c "echo } >> /etc/nginx/mime.types"
