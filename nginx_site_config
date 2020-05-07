@@ -14,7 +14,6 @@ upstream gwsocket {
 }
 
 server {
-    listen 443 ssl http2;
     server_name pfrost.me www.pfrost.me;
 
     root /var/www/pfrost.me/html;
@@ -83,7 +82,6 @@ server {
 }
 
 server {
-    listen 443 ssl http2;
     server_name git.pfrost.me;
 
     proxy_read_timeout 720s;
