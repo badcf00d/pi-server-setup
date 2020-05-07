@@ -84,7 +84,7 @@ git clone https://github.com/google/ngx_brotli.git
 perl -i -pe 's/dpkg-buildflags --get CFLAGS\)/dpkg-buildflags --get CFLAGS\) -ftree-vectorize -march=native/' ~/nginx-build/nginx-*/debian/rules
 perl -i -pe "s/common_configure_flags :=/common_configure_flags := --add-module=${HOME//'/'/'\/'}\/nginx-build\/ngx_brotli/" ~/nginx-build/nginx-*/debian/rules
 
-cd ~/nginx-build/nginx-*
+cd $(echo ~/nginx-build/nginx-* | awk '{ print $1 }')
 echo "#### Building nginx, this takes about 10 minutes on an rpi 3"
 dpkg-buildpackage -b --no-sign
 cd ..
@@ -194,6 +194,7 @@ echo
 echo "#### Please make sure you have forwarded ports 80 and 443 before we try and run certbot"
 read -p "#### The local IP of this device is probably $(hostname -I | awk '{ print $1 }')"
 sudo certbot --nginx
+sudo perl -i -pe "s/listen 443 ssl;/listen 443 ssl http2;/g" /etc/nginx/sites-available/pfrost.me
 
 
 
