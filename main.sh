@@ -148,9 +148,9 @@ sudo mkdir -p /etc/ipset-blacklist ; sudo wget -O /etc/ipset-blacklist/ipset-bla
 sudo /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf
 
 echo "#### Setting ipset-blacklist cron jobs"
-sudo crontab -l | { cat; echo "46 18 * * *      sudo /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf"; echo } | sudo crontab -
-sudo crontab -l | { cat; echo "@reboot sudo iptables -I INPUT 1 -m set --match-set blacklist src -j DROP"; echo } | sudo crontab -
-sudo crontab -l | { cat; echo "@reboot sudo ipset restore < /etc/ipset-blacklist/ip-blacklist.restore"; echo } | sudo crontab -
+sudo sh -c '{ sudo crontab -l | { cat; echo "46 18 * * *      sudo /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf"; echo; } | sudo crontab - ; }'
+sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot sudo iptables -I INPUT 1 -m set --match-set blacklist src -j DROP"; echo; } | sudo crontab - ; }'
+sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot sudo ipset restore < /etc/ipset-blacklist/ip-blacklist.restore"; echo; } | sudo crontab - ; }'
 
 tee << EOF /etc/fail2ban/action.d/iptables-multiport.local
 [Definition]
