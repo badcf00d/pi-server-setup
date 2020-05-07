@@ -18,9 +18,9 @@ sudo deluser -remove-home pi
 
 
 echo "#### Adding new sources"
-sudo sh -c "cat ${HOME}/apt_sources_list >> /etc/apt/sources.list"
+sudo sh -c "cat ${HOME}/pi-server-setup/apt_sources_list >> /etc/apt/sources.list"
 echo "#### Adding apt preferences"
-sudo sh -c "cat ${HOME}/apt_preferences >> /etc/apt/preferences"
+sudo sh -c "cat ${HOME}/pi-server-setup/apt_preferences >> /etc/apt/preferences"
 
 
 
@@ -101,16 +101,16 @@ sudo mkdir -p /var/www/pfrost.me/html
 sudo chown -R $USER:$USER /var/www/pfrost.me/html
 sudo find /var/www -type d -exec chmod 775 {} \;
 echo "#### Exporting site config"
-sudo sh -c "cat ${HOME}/nginx_site_config > /etc/nginx/sites-enabled/pfrost.me"
+sudo sh -c "cat ${HOME}/pi-server-setup/nginx_site_config > /etc/nginx/sites-enabled/pfrost.me"
 
 sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 echo "#### Exporting nginx config"
-sudo sh -c "cat ${HOME}/nginx_config > /etc/nginx/nginx.conf"
+sudo sh -c "cat ${HOME}/pi-server-setup/nginx_config > /etc/nginx/nginx.conf"
 
 echo "#### Exporting extra nginx mime types"
 sudo perl -i -pe 's/application\/font-woff.*\n//' /etc/nginx/mime.types
 sudo perl -i -pe 's/}//' /etc/nginx/mime.types
-sudo sh -c "cat ${HOME}/nginx_extra_mime_types >> /etc/nginx/mime.types"
+sudo sh -c "cat ${HOME}/pi-server-setup/nginx_extra_mime_types >> /etc/nginx/mime.types"
 sudo sh -c "echo } >> /etc/nginx/mime.types"
 
 sudo ln -s /etc/nginx/sites-available/pfrost.me /etc/nginx/sites-enabled/
@@ -175,7 +175,7 @@ git clone https://github.com/ddclient/ddclient.git
 sudo cp -f ddclient/ddclient /usr/sbin/
 
 echo "#### Exporting ddclient config:"
-sudo sh -c "cat ${HOME}/ddclient_config > /etc/ddclient/ddclient.conf"
+sudo sh -c "cat ${HOME}/pi-server-setup/ddclient_config > /etc/ddclient/ddclient.conf"
 read -p "Enter your cloudflare login: " cloudflare_login
 read -p "Enter your cloudflare global API key: " cloudflare_api_key
 sudo perl -i -pe "s/login=/login=${cloudflare_login}/" /etc/ddclient/ddclient.conf
@@ -259,7 +259,7 @@ maxmind_license_key=""
 tar -xzf GeoLite2-City.tar.gz
 
 echo "#### Exporting goaccess setup"
-sudo sh -c "cat ${HOME}/goaccess_service_config > /etc/systemd/system/goaccess.service"
+sudo sh -c "cat ${HOME}/pi-server-setup/goaccess_service_config > /etc/systemd/system/goaccess.service"
 
 sudo systemctl daemon-reload
 sudo service goaccess start
