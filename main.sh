@@ -1,9 +1,9 @@
-sudo adduser frost
-sudo usermod -a -G adm,dialout,cdrom,sudo,audio,video,plugdev,games,users,input,netdev,gpio,i2c,spi frost
-echo 'frost ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/010_frost-nopasswd
-
-#### This should log you in as the user 'frost'
-sudo su - frost
+if [ "$(whoami)" != "frost" ] ; then
+    sudo adduser frost
+    sudo usermod -a -G adm,dialout,cdrom,sudo,audio,video,plugdev,games,users,input,netdev,gpio,i2c,spi frost
+    echo 'frost ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/010_frost-nopasswd
+    sudo su - frost
+fi
 
 sudo pkill -u pi
 sudo deluser -remove-home pi
