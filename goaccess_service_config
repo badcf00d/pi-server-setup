@@ -1,0 +1,32 @@
+[Unit]
+Description=GoAccess real-time web log analysis
+After=network.target
+
+[Service]
+Type=simple
+
+ExecStart=goaccess /var/log/nginx/access.log -o /var/www/pfrost.me/html/goaccess.html \
+--log-format=COMBINED --real-time-html --geoip-database $HOME/GeoLite2-City/GeoLite2-City.mmdb \
+--config-file=/etc/goaccess/goaccess.conf
+
+ExecStop=/bin/kill -9 ${MAINPID}
+WorkingDirectory=/tmp
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=strict
+SystemCallFilter=~@clock @cpu-emulation @debug @keyring @memlock @module \
+                  @mount @obsolete @privileged @reboot @resources @setuid \
+                  @swap @raw-io
+
+ReadOnlyPaths=/
+ReadWritePaths=/proc/self
+ReadWritePaths=/var/www/pfrost.me/html
+
+PrivateDevices=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+
+[Install]
+WantedBy=multi-user.target

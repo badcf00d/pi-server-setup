@@ -1,0 +1,17 @@
+# CloudFlare (cloudflare.com)
+protocol=cloudflare
+
+# How often to check for IP change in seconds
+daemon=1800
+
+# Tell ddclient how to get your ip address
+use=web, web=ip.changeip.com
+
+# Credentials for Cloudflare API
+ssl=yes
+login=
+password=
+zone=pfrost.me
+pfrost.me
+www.pfrost.me
+git.pfrost.me

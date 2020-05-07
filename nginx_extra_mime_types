@@ -1,0 +1,5 @@
+    
+    font/woff2                            woff2;
+    font/woff                             woff;
+    application/wasm                      wasm;
+    application/manifest+json             webmanifest;
