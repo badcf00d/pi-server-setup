@@ -1,10 +1,12 @@
 if [ "$(whoami)" != "frost" ] ; then
+    echo "#### Creating user frost"
     sudo adduser frost
     sudo usermod -a -G adm,dialout,cdrom,sudo,audio,video,plugdev,games,users,input,netdev,gpio,i2c,spi frost
-    echo 'frost ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/010_frost-nopasswd
+    echo 'frost ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/010_frost-nopasswd 1&>/dev/null
     echo 
     echo 
     echo "#### Please ssh back into this device as the user frost"
+    echo "#### Type 'exit' then probably 'ssh frost@$(hostname -I | awk '{ print $1 }')'"
     exit
 fi
 
@@ -27,9 +29,9 @@ sudo sh -c "cat ${HOME}/pi-server-setup/apt_preferences >> /etc/apt/preferences"
 
 
 echo "#### Installing packages"
-sudo apt-get update && \
-sudo apt-get upgrade -y && \
-sudo apt-get full-upgrade -y && \
+sudo apt update && \
+sudo apt upgrade -y && \
+sudo apt full-upgrade -y && \
 sudo apt install -y git man build-essential make nano sqlite3 \
 libpam-google-authenticator mumble-server certbot python-certbot-nginx \
 fail2ban ipset nmap postfix mutt apache2-utils tree dpkg-dev software-properties-common \
@@ -47,7 +49,7 @@ sudo service ssh reload
 sudo perl -i -pe 's/#*ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
 sudo sh -c "echo 'PermitRootLogin no' >> /etc/ssh/sshd_config"
 
-google-authenticator --time-based --disallow-reuse --rate-limit=3 --rate-time=30
+google-authenticator --time-based --disallow-reuse --minimal-window --rate-limit=3 --rate-time=30
 sudo service ssh reload
 
 
@@ -56,7 +58,7 @@ sudo service ssh reload
 
 
 echo "#### Getting prerequisites to build nginx and openssl"
-sudo apt-get install -y -t testing gcc
+sudo apt install -y -t testing gcc
 sudo apt-get build-dep -y -t testing nginx-full openssl
 
 mkdir ~/nginx-build
@@ -168,7 +170,7 @@ sudo iptables -L INPUT -v --line-numbers
 
 echo "#### Installing ddclient:"
 #### noninteractive means it skips all the settings
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ddclient
+sudo DEBIAN_FRONTEND=noninteractive apt install -y ddclient
 cd ~
 echo "#### Cloning latest ddclient:"
 git clone https://github.com/ddclient/ddclient.git
@@ -253,7 +255,7 @@ sudo service mumble-server restart
 
 
 echo "#### Installing goaccess"
-sudo apt-get install -y -t testing goaccess
+sudo apt install -y -t testing goaccess
 cd ~
 read -p "Enter your maxmind license key: " maxmind_license_key
 wget "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=${maxmind_license_key}&suffix=tar.gz" -O GeoLite2-City.tar.gz
@@ -274,7 +276,7 @@ sudo service goaccess status
 echo "#### Adding Gitea user"
 sudo adduser --system --group --disabled-password --shell /bin/bash --home /home/gitea --gecos 'Git Version Control' gitea
 echo "#### Installing Gitea dependencies"
-sudo apt-get install -y -t testing nodejs npm golang
+sudo apt install -y -t testing nodejs npm golang
 echo "#### Updating npm"
 npm update --dd
 
