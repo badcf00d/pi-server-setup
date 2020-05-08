@@ -2,7 +2,7 @@ if [ "$(whoami)" != "frost" ] ; then
     sudo adduser frost
     sudo usermod -a -G adm,dialout,cdrom,sudo,audio,video,plugdev,games,users,input,netdev,gpio,i2c,spi frost
     echo 'frost ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/010_frost-nopasswd
-    
+    echo 
     echo 
     echo "#### Please ssh back into this device as the user frost"
     exit
@@ -101,7 +101,7 @@ sudo mkdir -p /var/www/pfrost.me/html
 sudo chown -R $USER:$USER /var/www/pfrost.me/html
 sudo find /var/www -type d -exec chmod 775 {} \;
 echo "#### Exporting site config"
-sudo sh -c "cat ${HOME}/pi-server-setup/nginx_site_config > /etc/nginx/sites-enabled/pfrost.me"
+sudo sh -c "cat ${HOME}/pi-server-setup/nginx_site_config > /etc/nginx/sites-available/pfrost.me"
 
 sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 echo "#### Exporting nginx config"
@@ -175,6 +175,7 @@ git clone https://github.com/ddclient/ddclient.git
 sudo cp -f ddclient/ddclient /usr/sbin/
 
 echo "#### Exporting ddclient config:"
+sudo mkdir -p /etc/ddclient
 sudo sh -c "cat ${HOME}/pi-server-setup/ddclient_config > /etc/ddclient/ddclient.conf"
 read -p "Enter your cloudflare login: " cloudflare_login
 read -p "Enter your cloudflare global API key: " cloudflare_api_key
@@ -215,7 +216,7 @@ nas_password=""
 sudo raspi-config nonint do_boot_wait 0
 
 echo "#### Adding cronjob"
-sudo crontab -l | { cat; echo "@reboot mount -a"; echo } | sudo crontab -
+sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot mount -a"; echo; } | sudo crontab - ; }'
 
 read -p "Enter a username to add to the nginx .htpasswd file: " htpasswd_username
 sudo htpasswd -c /etc/nginx/.htpasswd $htpasswd_username
@@ -237,11 +238,11 @@ sudo dpkg-reconfigure mumble-server
 
 read -sp "Enter a mumble server password: " mumble_server_word
 echo "#### Adjusting mumble server settings"
-sudo perl -i -pe "s/;*serverpassword=/serverpassword=${mumble_server_word}/" /etc/mumble-server.ini
+sudo perl -i -pe "s/;*serverpassword=.*/serverpassword=${mumble_server_word}/" /etc/mumble-server.ini
 sudo perl -i -pe "s/;*port=.*/port=2003/" /etc/mumble-server.ini
 sudo perl -i -pe "s/;*bandwidth=.*/bandwidth=45000/" /etc/mumble-server.ini
-sudo perl -i -pe "s/;*sslCert=.*/sslCert=/etc/letsencrypt/live/pfrost.me/fullchain.pem/" /etc/mumble-server.ini
-sudo perl -i -pe "s/;*sslKey=.*/sslKey=/etc/letsencrypt/live/pfrost.me/privkey.pem/" /etc/mumble-server.ini
+sudo perl -i -pe "s/;*sslCert=.*/sslCert=\/etc\/letsencrypt\/live\/pfrost.me\/fullchain.pem/" /etc/mumble-server.ini
+sudo perl -i -pe "s/;*sslKey=.*/sslKey=\/etc\/letsencrypt\/live\/pfrost.me\/privkey.pem/" /etc/mumble-server.ini
 mumble_server_word=""
 
 sudo service mumble-server restart
@@ -274,6 +275,8 @@ echo "#### Adding Gitea user"
 sudo adduser --system --group --disabled-password --shell /bin/bash --home /home/gitea --gecos 'Git Version Control' gitea
 echo "#### Installing Gitea dependencies"
 sudo apt-get install -y -t testing nodejs npm golang
+echo "#### Updating npm"
+npm update --dd
 
 echo "#### Cloning Gitea"
 cd ~
@@ -292,7 +295,7 @@ sudo /etc/init.d/dphys-swapfile start
 
 TAGS="bindata sqlite sqlite_unlock_notify" make build
     
-sudo mv ./gitea /usr/local/bin
+sudo cp ./gitea /usr/local/bin
 sudo chmod +x /usr/local/bin/gitea
 
 sudo mkdir -p /var/lib/gitea/{custom,data,indexers,public,log}
@@ -304,30 +307,31 @@ sudo chmod 770 /etc/gitea
 
 echo "#### Setting up Gitea service"
 sudo wget https://raw.githubusercontent.com/go-gitea/gitea/master/contrib/systemd/gitea.service -P /etc/systemd/system/
-sudo perl -i -pe "s/\bgit\b/gitea/" /etc/systemd/system/gitea.service
+sudo perl -i -pe "s/\bgit\b/gitea/g" /etc/systemd/system/gitea.service
 
 sudo systemctl daemon-reload
-sudo systemctl enable gitea
-sudo service gitea start
+sudo systemctl enable --now gitea
+sudo service gitea status
 
-echo "Open up a browser and goto http://$(hostname -I | awk '{ print $1 }'):3000"
+echo 
+echo "Open up a browser and goto http://$(hostname -I | awk '{ print $1 }'):3000/install"
 echo 'Set the following settings, leave the others default: '
 echo 
 echo '  Database Type: SQLite3'
-echo '  Run As Username: gitea'
-echo '  SSH Server Domain: pfrost.me'
+echo '  SSH Server Domain: git.pfrost.me'
 echo '  SSH Port: (Defaults to 22, change if needed)'
-echo '  Gitea HTTP Listen Port: 3000'
 echo '  Gitea Base URL: https://git.pfrost.me/'
 read -p "Press enter when you've done that. "
 
 echo "#### Adjusting Gitea settings"
-sudo perl -i -pe "s/STATIC_URL_PREFIX.*/STATIC_URL_PREFIX = \/_\/static/" /etc/gitea/app.ini
+
+sudo perl -i -pe "s/^\[server\]/\[server\]\nSTATIC_URL_PREFIX = \/_\/static/m" /etc/gitea/app.ini
 sudo perl -i -pe "s/DISABLE_REGISTRATION.*/DISABLE_REGISTRATION = true/" /etc/gitea/app.ini
 sudo perl -i -pe "s/REGISTER_EMAIL_CONFIRM.*/REGISTER_EMAIL_CONFIRM = true/" /etc/gitea/app.ini
 sudo perl -i -pe "s/REQUIRE_SIGNIN_VIEW.*/REQUIRE_SIGNIN_VIEW = true/" /etc/gitea/app.ini
 
 sudo service gitea restart
+sudo service gitea status
 
 sudo chmod 750 /etc/gitea
 sudo chmod 640 /etc/gitea/app.ini
