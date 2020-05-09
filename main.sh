@@ -40,10 +40,19 @@ fi
 
 
 
-echo "#### Adding new sources"
-sudo sh -c "cat ${HOME}/pi-server-setup/apt_sources_list >> /etc/apt/sources.list"
-echo "#### Adding apt preferences"
-sudo sh -c "cat ${HOME}/pi-server-setup/apt_preferences >> /etc/apt/preferences"
+if grep -q '# Extra apt sources' /etc/apt/sources.lists; then
+    echo "#### Already added extra apt sources"
+else
+    echo "#### Adding new sources"
+    sudo sh -c "cat ${HOME}/pi-server-setup/apt_sources_list >> /etc/apt/sources.list"
+fi
+
+if grep -q '# Extra apt preferences' /etc/apt/preferences; then
+    echo "#### Already added apt preferences"
+else
+    echo "#### Adding apt preferences"
+    sudo sh -c "cat ${HOME}/pi-server-setup/apt_preferences >> /etc/apt/preferences"
+fi
 
 
 
@@ -66,11 +75,29 @@ echo "#### Installed new packages"
 echo "#### Setting up google authenticator 2FA SSH"
 google-authenticator --time-based --disallow-reuse --minimal-window --rate-limit=3 --rate-time=30
 
-sudo sh -c "echo 'auth required pam_google_authenticator.so' >> /etc/pam.d/sshd"
+if grep -q '^auth required pam_google_authenticator.so' /etc/pam.d/sshd; then
+    echo "#### Already added pam_google_authenticator"
+else
+    echo "#### Adding pam_google_authenticator"
+    sudo sh -c "echo 'auth required pam_google_authenticator.so' >> /etc/pam.d/sshd"
+fi
+
 sudo service ssh reload
 
-sudo perl -i -pe 's/#*ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
-sudo sh -c "echo 'PermitRootLogin no' >> /etc/ssh/sshd_config"
+if grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config; then
+    echo "#### Already enabled challenge response authentication"
+else
+    echo "#### enabling challenge response authentication"
+    sudo sh -c "echo 'ChallengeResponseAuthentication yes' >> /etc/ssh/sshd_config"
+fi
+
+if grep -q '^PermitRootLogin no' /etc/ssh/sshd_config; then
+    echo "#### Already disabled ssh root login"
+else
+    echo "#### Disabling root ssh login"
+    sudo sh -c "echo 'PermitRootLogin no' >> /etc/ssh/sshd_config"
+fi
+
 sudo service ssh reload
 
 
@@ -130,11 +157,15 @@ sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 echo "#### Exporting nginx config"
 sudo sh -c "cat ${HOME}/pi-server-setup/nginx_config > /etc/nginx/nginx.conf"
 
-echo "#### Exporting extra nginx mime types"
-sudo perl -i -pe 's/application\/font-woff.*//' /etc/nginx/mime.types
-sudo perl -i -pe 's/}//' /etc/nginx/mime.types
-sudo sh -c "cat ${HOME}/pi-server-setup/nginx_extra_mime_types >> /etc/nginx/mime.types"
-sudo sh -c "echo } >> /etc/nginx/mime.types"
+if grep -q '# Extra mime types' /etc/nginx/mime.types; then
+    echo "#### Already modified mime types"
+else
+    echo "#### Exporting extra nginx mime types"
+    sudo perl -i -pe 's/application\/font-woff.*//' /etc/nginx/mime.types
+    sudo perl -i -pe 's/}//' /etc/nginx/mime.types
+    sudo sh -c "cat ${HOME}/pi-server-setup/nginx_extra_mime_types >> /etc/nginx/mime.types"
+    sudo sh -c "echo } >> /etc/nginx/mime.types"
+fi
 
 sudo ln -s /etc/nginx/sites-available/pfrost.me /etc/nginx/sites-enabled/
 sudo nginx -t
@@ -228,13 +259,17 @@ mkdir -p ~/D-LINKNAS/Volume_1
 mkdir -p ~/D-LINKNAS/Volume_2
 sudo update-rc.d rpcbind enable
 
-read -p "Enter your NAS login: " nas_login
-read -sp "Enter your NAS password: " nas_password
-sudo sh -c "echo \"//192.168.7.11/Volume_1 $HOME/D-LINKNAS/Volume_1 cifs username=${nas_login},password=${nas_password},vers=1.0 0 0\" >> /etc/fstab"
-sudo sh -c "echo \"//192.168.7.11/Volume_2 $HOME/D-LINKNAS/Volume_2 cifs username=${nas_login},password=${nas_password},vers=1.0 0 0\" >> /etc/fstab"
-nas_login=""
-nas_password=""
-
+if grep -q '192.168.7.11/Volume_1' /etc/fstab; then
+    echo "#### Already modified fstab"
+else
+    read -p "Enter your NAS login: " nas_login
+    read -sp "Enter your NAS password: " nas_password
+    echo "#### Modifying fstab"
+    sudo sh -c "echo \"//192.168.7.11/Volume_1 $HOME/D-LINKNAS/Volume_1 cifs username=${nas_login},password=${nas_password},vers=1.0 0 0\" >> /etc/fstab"
+    sudo sh -c "echo \"//192.168.7.11/Volume_2 $HOME/D-LINKNAS/Volume_2 cifs username=${nas_login},password=${nas_password},vers=1.0 0 0\" >> /etc/fstab"
+    nas_login=""
+    nas_password=""
+fi
 #### Equivalent to using the Wait for Network at Boot option in raspi-config
 sudo raspi-config nonint do_boot_wait 0
 
