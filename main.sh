@@ -1,15 +1,23 @@
 #!/bin/bash
 set -e
 set -u
+trap 'catch $? $LINENO' ERR
 
-trap 'catch $? $LINENO' EXIT
-
+BASE_DIR=$(dirname $(readlink -f "$BASH_SOURCE"))
 
 catch() {
-    echo "Trapped"
-    if [ "$1" != "0" ]; then
-        echo "Error $1 occurred on line $2"
-    fi
+    case $1 in
+        "0")
+        echo "Trapped but return value seems ok?"
+        ;;
+
+        *)
+        echo "Error: command returned $1 on line $(caller)"
+        ;;
+    esac
+
+    cd $BASE_DIR
+    awk 'NR>Line-3 && NR<Line+3 { printf "%-4d%4s%s\n",NR,(NR==Line?"--> ":""),$0 }' Line=$2 $(caller | awk '{ print $2 }')
 }
 
 
@@ -58,10 +66,13 @@ fi
 
 
 
-echo "#### Installing packages"
+echo "#### Updating repositories"
 sudo apt update && \
+echo "#### Upgrading packages"
 sudo apt upgrade -y && \
+echo "#### Upgrading distrobution"
 sudo apt full-upgrade -y && \
+echo "#### Installing packages distrobution"
 sudo apt install -y git man build-essential make nano sqlite3 \
 libpam-google-authenticator mumble-server certbot python-certbot-nginx \
 fail2ban ipset nmap postfix mutt apache2-utils tree dpkg-dev software-properties-common \
@@ -109,8 +120,8 @@ echo "#### Getting prerequisites to build nginx and openssl"
 sudo apt install -y -t testing gcc
 sudo apt-get build-dep -y -t testing nginx-full openssl
 
-mkdir ~/nginx-build
-mkdir ~/openssl-build
+mkdir -p ~/nginx-build
+mkdir -p ~/openssl-build
 
 cd ~/openssl-build
 echo "#### Getting openssl sources"
@@ -167,7 +178,7 @@ else
     sudo sh -c "echo } >> /etc/nginx/mime.types"
 fi
 
-sudo ln -s /etc/nginx/sites-available/pfrost.me /etc/nginx/sites-enabled/
+sudo ln -s -i -v /etc/nginx/sites-available/pfrost.me /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo service nginx restart
 
@@ -283,8 +294,8 @@ echo "#### sudo htpasswd /etc/nginx/.htpasswd *desired username*"
 echo 
 htpasswd_username=""
 
-sudo mkdir /var/www/pfrost.me/html/directorydoesnotexist
-sudo ln -s ~/D-LINKNAS /var/www/pfrost.me/html/directorydoesnotexist 
+sudo mkdir -p /var/www/pfrost.me/html/directorydoesnotexist
+sudo ln -s -i -v ~/D-LINKNAS /var/www/pfrost.me/html/directorydoesnotexist 
 
 
 
@@ -359,7 +370,7 @@ sudo chmod +x /usr/local/bin/gitea
 sudo mkdir -p /var/lib/gitea/{custom,data,indexers,public,log}
 sudo chown gitea: /var/lib/gitea/{data,indexers,log}
 sudo chmod 750 /var/lib/gitea/{data,indexers,log}
-sudo mkdir /etc/gitea
+sudo mkdir -p /etc/gitea
 sudo chown root:gitea /etc/gitea
 sudo chmod 770 /etc/gitea
 
