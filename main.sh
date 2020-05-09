@@ -133,10 +133,7 @@ echo "#### Building openssl, this will take about 45 minutes on an rpi 3"
 dpkg-buildpackage -b --no-sign
 cd ..
 echo "#### Installing openssl"
-sudo dpkg --install openssl_*_armhf.deb
-sudo dpkg --install libssl1.1_*_armhf.deb
-sudo dpkg --install libssl-dev_*_armhf.deb
-
+sudo apt install -y -t testing ./openssl_*_armhf.deb ./libssl1.1_*_armhf.deb ./libssl-dev_*_armhf.deb
 
 cd ~/nginx-build
 echo "#### Getting nginx sources"
@@ -150,8 +147,7 @@ echo "#### Building nginx, this takes about 10 minutes on an rpi 3"
 dpkg-buildpackage -b --no-sign
 cd ..
 echo "#### Installing nginx"
-sudo dpkg --install nginx-common_*_all.deb
-sudo dpkg --install nginx-full_*_armhf.deb
+sudo apt install -y -t testing ./nginx-common_*_all.deb ./nginx-full_*_armhf.deb
 
 
 
