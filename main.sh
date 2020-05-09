@@ -1,3 +1,9 @@
+# Exit on error return
+set -e
+# Error on unset variables and parameters
+set -u
+
+
 if [ "$(whoami)" != "frost" ] ; then
     echo "#### Creating user frost"
     sudo adduser frost
@@ -43,13 +49,13 @@ echo "#### Installed new packages"
 
 
 echo "#### Setting up google authenticator 2FA SSH"
+google-authenticator --time-based --disallow-reuse --minimal-window --rate-limit=3 --rate-time=30
+
 sudo sh -c "echo 'auth required pam_google_authenticator.so' >> /etc/pam.d/sshd"
 sudo service ssh reload
 
 sudo perl -i -pe 's/#*ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
 sudo sh -c "echo 'PermitRootLogin no' >> /etc/ssh/sshd_config"
-
-google-authenticator --time-based --disallow-reuse --minimal-window --rate-limit=3 --rate-time=30
 sudo service ssh reload
 
 
