@@ -1,7 +1,17 @@
-# Exit on error return
+#!/bin/bash
 set -e
-# Error on unset variables and parameters
 set -u
+
+trap 'catch $? $LINENO' EXIT
+
+
+catch() {
+    echo "Trapped"
+    if [ "$1" != "0" ]; then
+        echo "Error $1 occurred on line $2"
+    fi
+}
+
 
 
 if [ "$(whoami)" != "frost" ] ; then
@@ -18,9 +28,14 @@ fi
 
 
 
-echo "#### Deleting pi user"
-sudo pkill -u pi
-sudo deluser -remove-home pi
+
+if id pi >/dev/null 2>&1; then
+    echo "#### Deleting pi user"
+    sudo pkill -u pi
+    sudo deluser -remove-home pi
+else
+    echo "#### pi user doesn't exist"
+fi
 
 
 
