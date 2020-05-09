@@ -6,8 +6,8 @@ A set of script and config files that I use to setup raspberry pi servers from a
 ```
 #### Flash raspbian and add the 'ssh' file to the boot partition to enable ssh
 #### ssh into the default pi user
-sudo apt-get update && \
-sudo apt-get install -y git && \
+sudo apt update && \
+sudo apt install -y git && \
 git clone https://github.com/badcf00d/pi-server-setup.git && \
 cd pi-server-setup && \
 ./main.sh
