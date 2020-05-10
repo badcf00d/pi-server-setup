@@ -111,9 +111,9 @@ if sudo grep -q -- '^PermitRootLogin no' /etc/ssh/sshd_config; then
 else
     echo "#### Disabling root ssh login"
     if sudo grep -q -- '^PermitRootLogin' /etc/ssh/sshd_config; then
-        sudo perl -i -pe 's/PermitRootLogin.*no/PermitRootLogin yes/' /etc/ssh/sshd_config
+        sudo perl -i -pe 's/PermitRootLogin.*yes/PermitRootLogin no/' /etc/ssh/sshd_config
     else
-        sudo sh -c "echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config"
+        sudo sh -c "echo 'PermitRootLogin no' >> /etc/ssh/sshd_config"
     fi
 fi
 
