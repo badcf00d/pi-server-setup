@@ -39,7 +39,9 @@ fi
 
 if id pi >/dev/null 2>&1; then
     echo "#### Deleting pi user"
-    sudo pkill -u pi
+    if pgrep pi >/dev/null 2>&1; then
+        sudo pkill -u pi
+    fi
     sudo deluser -remove-home pi
 else
     echo "#### pi user doesn't exist"
@@ -70,9 +72,9 @@ echo "#### Updating repositories"
 sudo apt update && \
 echo "#### Upgrading packages"
 sudo apt upgrade -y && \
-echo "#### Upgrading distrobution"
+echo "#### Upgrading distribution"
 sudo apt full-upgrade -y && \
-echo "#### Installing packages distrobution"
+echo "#### Installing packages"
 sudo apt install -y git man build-essential make nano sqlite3 \
 libpam-google-authenticator mumble-server certbot python-certbot-nginx \
 fail2ban ipset nmap postfix mutt apache2-utils tree dpkg-dev software-properties-common \
@@ -133,7 +135,7 @@ echo "#### Building openssl, this will take about 45 minutes on an rpi 3"
 dpkg-buildpackage -b --no-sign
 cd ..
 echo "#### Installing openssl"
-sudo apt install -y -t testing ./openssl_*_armhf.deb ./libssl1.1_*_armhf.deb ./libssl-dev_*_armhf.deb
+sudo apt install -y --allow-downgrades -t testing ./openssl_*_armhf.deb ./libssl1.1_*_armhf.deb ./libssl-dev_*_armhf.deb
 
 cd ~/nginx-build
 echo "#### Getting nginx sources"
@@ -147,7 +149,7 @@ echo "#### Building nginx, this takes about 10 minutes on an rpi 3"
 dpkg-buildpackage -b --no-sign
 cd ..
 echo "#### Installing nginx"
-sudo apt install -y -t testing ./nginx-common_*_all.deb ./nginx-full_*_armhf.deb
+sudo apt install -y --allow-downgrades -t testing ./nginx-common_*_all.deb ./nginx-full_*_armhf.deb
 
 
 
@@ -196,7 +198,7 @@ sudo perl -i -pe "s/^\[nginx-limit-req\]/\[nginx-limit-req\]\nenabled = true\nba
 sudo perl -i -pe "s/^\[nginx-botsearch\]/\[nginx-botsearch\]\nenabled = true\nbanaction = iptables-multiport/m" /etc/fail2ban/jail.local
 
 sudo service fail2ban restart
-sudo fail2ban-client status
+sudo service fail2ban status
 
 
 
