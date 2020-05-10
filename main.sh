@@ -50,14 +50,14 @@ fi
 
 
 
-if grep -q '# Extra apt sources' /etc/apt/sources.list; then
+if sudo grep -q -- '# Extra apt sources' /etc/apt/sources.list; then
     echo "#### Already added extra apt sources"
 else
     echo "#### Adding new sources"
     sudo sh -c "cat ${HOME}/pi-server-setup/apt_sources_list >> /etc/apt/sources.list"
 fi
 
-if grep -q '# Extra apt preferences' /etc/apt/preferences; then
+if sudo grep -q -- '# Extra apt preferences' /etc/apt/preferences; then
     echo "#### Already added apt preferences"
 else
     echo "#### Adding apt preferences"
@@ -88,27 +88,33 @@ echo "#### Installed new packages"
 echo "#### Setting up google authenticator 2FA SSH"
 google-authenticator --time-based --disallow-reuse --minimal-window --rate-limit=3 --rate-time=30
 
-if grep -q '^auth required pam_google_authenticator.so' /etc/pam.d/sshd; then
+if sudo grep -q -- '^auth required pam_google_authenticator.so' /etc/pam.d/sshd; then
     echo "#### Already added pam_google_authenticator"
 else
     echo "#### Adding pam_google_authenticator"
     sudo sh -c "echo 'auth required pam_google_authenticator.so' >> /etc/pam.d/sshd"
 fi
 
-sudo service ssh reload
-
-if grep -q '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config; then
+if sudo grep -q -- '^ChallengeResponseAuthentication yes' /etc/ssh/sshd_config; then
     echo "#### Already enabled challenge response authentication"
 else
     echo "#### enabling challenge response authentication"
-    sudo sh -c "echo 'ChallengeResponseAuthentication yes' >> /etc/ssh/sshd_config"
+    if sudo grep -q -- '^ChallengeResponseAuthentication' /etc/ssh/sshd_config; then
+        sudo perl -i -pe 's/ChallengeResponseAuthentication.*no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
+    else
+        sudo sh -c "echo 'ChallengeResponseAuthentication yes' >> /etc/ssh/sshd_config"
+    fi
 fi
 
-if grep -q '^PermitRootLogin no' /etc/ssh/sshd_config; then
+if sudo grep -q -- '^PermitRootLogin no' /etc/ssh/sshd_config; then
     echo "#### Already disabled ssh root login"
 else
     echo "#### Disabling root ssh login"
-    sudo sh -c "echo 'PermitRootLogin no' >> /etc/ssh/sshd_config"
+    if sudo grep -q -- '^PermitRootLogin' /etc/ssh/sshd_config; then
+        sudo perl -i -pe 's/PermitRootLogin.*no/PermitRootLogin yes/' /etc/ssh/sshd_config
+    else
+        sudo sh -c "echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config"
+    fi
 fi
 
 sudo service ssh reload
@@ -166,7 +172,7 @@ sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 echo "#### Exporting nginx config"
 sudo sh -c "cat ${HOME}/pi-server-setup/nginx_config > /etc/nginx/nginx.conf"
 
-if grep -q '# Extra mime types' /etc/nginx/mime.types; then
+if sudo grep -q -- '# Extra mime types' /etc/nginx/mime.types; then
     echo "#### Already modified mime types"
 else
     echo "#### Exporting extra nginx mime types"
@@ -211,26 +217,26 @@ sudo mkdir -p /etc/ipset-blacklist ; sudo wget -O /etc/ipset-blacklist/ipset-bla
 sudo /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf
 
 echo "#### Setting ipset-blacklist cron jobs"
-if sudo crontab -l | grep -q 'update-blacklist.sh'; then
+if sudo crontab -l | sudo grep -q -- 'update-blacklist.sh'; then
     echo "#### Already added update-blacklist"
 else
     sudo sh -c '{ sudo crontab -l | { cat; echo "46 18 * * *      sudo /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf"; echo; } | sudo crontab - ; }'
 fi
 
-if sudo crontab -l | grep -q '--match-set blacklist src'; then
+if sudo crontab -l | sudo grep -q -- '--match-set blacklist src'; then
     echo "#### Already added iptables match-set"
 else
     sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot sudo iptables -I INPUT 1 -m set --match-set blacklist src -j DROP"; echo; } | sudo crontab - ; }'
 fi
 
-if sudo crontab -l | grep -q 'ip-blacklist.restore'; then
+if sudo crontab -l | sudo grep -q -- 'ip-blacklist.restore'; then
     echo "#### Already added blacklist restore"
 else
     sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot sudo ipset restore < /etc/ipset-blacklist/ip-blacklist.restore"; echo; } | sudo crontab - ; }'
 fi
 
 
-if grep -q 'actionstart = <iptables> -N f2b-<name>' /etc/fail2ban/action.d/iptables-multiport.local; then
+if sudo grep -q -- 'actionstart = <iptables> -N f2b-<name>' /etc/fail2ban/action.d/iptables-multiport.local; then
     echo "#### Already added fail2ban multiport rule"
 else
     sudo tee << EOF /etc/fail2ban/action.d/iptables-multiport.local
@@ -251,6 +257,7 @@ sudo iptables -L INPUT -v --line-numbers
 echo "#### Installing ddclient:"
 #### noninteractive means it skips all the settings
 sudo DEBIAN_FRONTEND=noninteractive apt install -y ddclient
+sudo apt install -y -t testing libio-socket-ssl-perl
 cd ~
 echo "#### Cloning latest ddclient:"
 git clone https://github.com/ddclient/ddclient.git
@@ -261,8 +268,8 @@ sudo mkdir -p /etc/ddclient
 sudo sh -c "cat ${HOME}/pi-server-setup/ddclient_config > /etc/ddclient/ddclient.conf"
 read -p "Enter your cloudflare login: " cloudflare_login
 read -p "Enter your cloudflare global API key: " cloudflare_api_key
-sudo perl -i -pe "s/login=/login=${cloudflare_login}/" /etc/ddclient/ddclient.conf
-sudo perl -i -pe "s/password=/password=${cloudflare_api_key}/" /etc/ddclient/ddclient.conf
+sudo perl -i -pe "s/login=.*/login=${cloudflare_login}/" /etc/ddclient/ddclient.conf
+sudo perl -i -pe "s/password=.*/password=${cloudflare_api_key}/" /etc/ddclient/ddclient.conf
 cloudflare_login=""
 cloudflare_api_key=""
 
@@ -275,7 +282,7 @@ sudo service ddclient status
 
 echo 
 echo "#### Please make sure you have forwarded ports 80 and 443 before we try and run certbot"
-read -p "#### The local IP of this device is probably $(hostname -I | awk '{ print $1 }')"
+read -p "#### The local IP of this device is probably $(hostname -I | awk '{ print $1 }') (press enter): "
 sudo certbot --nginx
 sudo perl -i -pe "s/listen 443 ssl;/listen 443 ssl http2;/g" /etc/nginx/sites-available/pfrost.me
 
@@ -287,7 +294,7 @@ mkdir -p ~/D-LINKNAS/Volume_1
 mkdir -p ~/D-LINKNAS/Volume_2
 sudo update-rc.d rpcbind enable
 
-if grep -q '192.168.7.11/Volume_1' /etc/fstab; then
+if sudo grep -q -- '192.168.7.11/Volume_1' /etc/fstab; then
     echo "#### Already modified fstab"
 else
     read -p "Enter your NAS login: " nas_login
@@ -302,7 +309,7 @@ fi
 sudo raspi-config nonint do_boot_wait 0
 
 echo "#### Adding cronjob"
-if sudo crontab -l | grep -q '@reboot mount -a'; then
+if sudo crontab -l | sudo grep -q -- '@reboot mount -a'; then
     echo "#### Already added mount cronjob"
 else
     sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot mount -a"; echo; } | sudo crontab - ; }'
@@ -358,9 +365,8 @@ echo "#### Exporting goaccess setup"
 sudo sh -c "cat ${HOME}/pi-server-setup/goaccess_service_config > /etc/systemd/system/goaccess.service"
 
 sudo systemctl daemon-reload
-sudo service goaccess start
-sudo systemctl goaccess enable 
-sudo service goaccess status 
+sudo systemctl enable --now goaccess
+sudo service goaccess status
 
 
 
@@ -376,7 +382,7 @@ echo "#### Cloning Gitea"
 cd ~
 git clone https://github.com/go-gitea/gitea
 cd gitea
-git tag -l
+git tag -l | sort -n
 read -p "Pick a gitea version to use: " gitea_version
 git checkout $gitea_version
 gitea_version=""
@@ -415,12 +421,13 @@ echo '  Database Type: SQLite3'
 echo '  SSH Server Domain: git.pfrost.me'
 echo '  SSH Port: (Defaults to 22, change if needed)'
 echo '  Gitea Base URL: https://git.pfrost.me/'
+echo 
 read -p "Press enter when you've done that. "
 
 echo "#### Adjusting Gitea settings"
 
 
-if grep -q 'STATIC_URL_PREFIX = /_/static' /etc/gitea/app.ini; then
+if sudo grep -q -- 'STATIC_URL_PREFIX = /_/static' /etc/gitea/app.ini; then
     echo "#### Already added STATIC_URL_PREFIX = /_/static"
 else
     sudo perl -i -pe "s/^\[server\]/\[server\]\nSTATIC_URL_PREFIX = \/_\/static/m" /etc/gitea/app.ini
