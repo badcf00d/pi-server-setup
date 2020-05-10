@@ -48,7 +48,7 @@ fi
 
 
 
-if grep -q '# Extra apt sources' /etc/apt/sources.lists; then
+if grep -q '# Extra apt sources' /etc/apt/sources.list; then
     echo "#### Already added extra apt sources"
 else
     echo "#### Adding new sources"
@@ -209,16 +209,35 @@ sudo mkdir -p /etc/ipset-blacklist ; sudo wget -O /etc/ipset-blacklist/ipset-bla
 sudo /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf
 
 echo "#### Setting ipset-blacklist cron jobs"
-sudo sh -c '{ sudo crontab -l | { cat; echo "46 18 * * *      sudo /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf"; echo; } | sudo crontab - ; }'
-sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot sudo iptables -I INPUT 1 -m set --match-set blacklist src -j DROP"; echo; } | sudo crontab - ; }'
-sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot sudo ipset restore < /etc/ipset-blacklist/ip-blacklist.restore"; echo; } | sudo crontab - ; }'
+if sudo crontab -l | grep -q 'update-blacklist.sh'; then
+    echo "#### Already added update-blacklist"
+else
+    sudo sh -c '{ sudo crontab -l | { cat; echo "46 18 * * *      sudo /usr/local/sbin/update-blacklist.sh /etc/ipset-blacklist/ipset-blacklist.conf"; echo; } | sudo crontab - ; }'
+fi
 
-tee << EOF /etc/fail2ban/action.d/iptables-multiport.local
+if sudo crontab -l | grep -q '--match-set blacklist src'; then
+    echo "#### Already added iptables match-set"
+else
+    sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot sudo iptables -I INPUT 1 -m set --match-set blacklist src -j DROP"; echo; } | sudo crontab - ; }'
+fi
+
+if sudo crontab -l | grep -q 'ip-blacklist.restore'; then
+    echo "#### Already added blacklist restore"
+else
+    sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot sudo ipset restore < /etc/ipset-blacklist/ip-blacklist.restore"; echo; } | sudo crontab - ; }'
+fi
+
+
+if grep -q 'actionstart = <iptables> -N f2b-<name>' /etc/fail2ban/action.d/iptables-multiport.local; then
+    echo "#### Already added fail2ban multiport rule"
+else
+    sudo tee << EOF /etc/fail2ban/action.d/iptables-multiport.local
 [Definition]
 actionstart = <iptables> -N f2b-<name>
               <iptables> -A f2b-<name> -j <returntype>
               <iptables> -I <chain> 2 -p <protocol> -m multiport --dports <port> -j f2b-<name>
 EOF
+fi
 
 echo "#### iptables output:"
 sudo iptables -L INPUT -v --line-numbers
@@ -281,10 +300,18 @@ fi
 sudo raspi-config nonint do_boot_wait 0
 
 echo "#### Adding cronjob"
-sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot mount -a"; echo; } | sudo crontab - ; }'
+if sudo crontab -l | grep -q '@reboot mount -a'; then
+    echo "#### Already added mount cronjob"
+else
+    sudo sh -c '{ sudo crontab -l | { cat; echo "@reboot mount -a"; echo; } | sudo crontab - ; }'
+fi
 
 read -p "Enter a username to add to the nginx .htpasswd file: " htpasswd_username
-sudo htpasswd -c /etc/nginx/.htpasswd $htpasswd_username
+if test -f '/etc/nginx/.htpasswd'; then
+    sudo htpasswd /etc/nginx/.htpasswd $htpasswd_username
+else
+    sudo htpasswd -c /etc/nginx/.htpasswd $htpasswd_username
+fi
 echo "#### If you want to add more username/password combinations once your system is setup, run:"
 echo "#### sudo htpasswd /etc/nginx/.htpasswd *desired username*"
 echo 
@@ -390,7 +417,12 @@ read -p "Press enter when you've done that. "
 
 echo "#### Adjusting Gitea settings"
 
-sudo perl -i -pe "s/^\[server\]/\[server\]\nSTATIC_URL_PREFIX = \/_\/static/m" /etc/gitea/app.ini
+
+if grep -q 'STATIC_URL_PREFIX = /_/static' /etc/gitea/app.ini; then
+    echo "#### Already added STATIC_URL_PREFIX = /_/static"
+else
+    sudo perl -i -pe "s/^\[server\]/\[server\]\nSTATIC_URL_PREFIX = \/_\/static/m" /etc/gitea/app.ini
+fi
 sudo perl -i -pe "s/DISABLE_REGISTRATION.*/DISABLE_REGISTRATION = true/" /etc/gitea/app.ini
 sudo perl -i -pe "s/REGISTER_EMAIL_CONFIRM.*/REGISTER_EMAIL_CONFIRM = true/" /etc/gitea/app.ini
 sudo perl -i -pe "s/REQUIRE_SIGNIN_VIEW.*/REQUIRE_SIGNIN_VIEW = true/" /etc/gitea/app.ini
