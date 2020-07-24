@@ -6,6 +6,7 @@ trap 'catch $? $LINENO' ERR
 BASE_DIR=$(dirname $(readlink -f "$BASH_SOURCE"))
 
 catch() {
+    echo 
     case $1 in
         "0")
         echo "Trapped but return value seems ok?"
@@ -69,11 +70,11 @@ fi
 
 
 echo "#### Updating repositories"
-sudo apt update && \
+sudo apt update
 echo "#### Upgrading packages"
-sudo apt upgrade -y && \
+sudo apt upgrade -y
 echo "#### Upgrading distribution"
-sudo apt full-upgrade -y && \
+sudo apt full-upgrade -y
 echo "#### Installing packages"
 sudo apt install -y git man build-essential make nano sqlite3 \
 libpam-google-authenticator mumble-server certbot python-certbot-nginx \
