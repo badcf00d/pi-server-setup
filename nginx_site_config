@@ -36,9 +36,6 @@ server {
         limit_req zone=lr_zone burst=5 nodelay;
 
         http2_push /css/styles.css;
-        http2_push /hamburgers/dist/hamburgers.css;
-        http2_push /Fira-Lightened/fira.css;
-        http2_push /Roboto-Mono/roboto.css;
     }
 
     location /directorydoesnotexist {
