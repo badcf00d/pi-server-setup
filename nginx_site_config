@@ -31,6 +31,11 @@ server {
        deny all;
     }
 
+    # deny access to .git files
+    location ~ /\.git {
+       deny all;
+    }
+
     location ~ \.html$ {
         try_files $uri $uri/ =404;
         limit_req zone=lr_zone burst=5 nodelay;
