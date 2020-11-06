@@ -156,7 +156,7 @@ echo "#### Building nginx, this takes about 10 minutes on an rpi 3"
 dpkg-buildpackage -b --no-sign
 cd ..
 echo "#### Installing nginx"
-sudo apt install -y --allow-downgrades -t testing ./nginx-common_*_all.deb ./nginx-full_*_armhf.deb
+sudo apt install -y --allow-downgrades -t testing ./nginx-core_*_armhf.deb ./nginx-common_*_all.deb ./nginx-full_*_armhf.deb
 
 
 
