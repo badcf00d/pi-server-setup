@@ -73,15 +73,10 @@ server {
     # HSTS (ngx_http_headers_module is required) (63072000 seconds = 24 months)
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
 
-    # OCSP Stapling ---
-    # fetch OCSP records from URL in ssl_certificate and cache them
-    ssl_stapling on;
-    ssl_stapling_verify on;
-    ssl_session_tickets off;
-    ssl_ecdh_curve prime256v1;
-
     expires $expires;
 }
+
+
 
 server {
     server_name git.pfrost.me;
