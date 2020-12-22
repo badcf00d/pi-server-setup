@@ -79,7 +79,8 @@ echo "#### Installing packages"
 sudo apt install -y git man build-essential make nano sqlite3 \
 libpam-google-authenticator mumble-server certbot python-certbot-nginx \
 fail2ban ipset nmap postfix mutt apache2-utils tree dpkg-dev software-properties-common \
-libbrotli-dev brotli htop wget curl xclip libjson-any-perl perl libdata-validate-ip-perl
+libbrotli-dev brotli htop wget curl xclip libjson-any-perl perl libdata-validate-ip-perl \
+php-fpm php-mbstring
 echo "#### Installed new packages"
 
 
@@ -332,6 +333,18 @@ sudo ln -s -i -v ~/D-LINKNAS /var/www/pfrost.me/html/directorydoesnotexist
 
 
 
+
+
+
+echo "#### Setting up tinyfilemanager"
+cd ~
+git clone https://github.com/prasathmani/tinyfilemanager.git
+perl -i -pe "s/$use_auth = */$use_auth = false;/" /home/frost/tinyfilemanager/tinyfilemanager.php
+perl -i -pe "s/$root_path = */$root_path = $_SERVER['DOCUMENT_ROOT'].'/directorydoesnotexist';/" /home/frost/tinyfilemanager/tinyfilemanager.php
+perl -i -pe "s/$root_url = */$root_url = 'directorydoesnotexist';/" /home/frost/tinyfilemanager/tinyfilemanager.php
+perl -i -pe "s/$edit_files = */$edit_files = false;/" /home/frost/tinyfilemanager/tinyfilemanager.php
+
+sudo ln -s /home/frost/tinyfilemanager/tinyfilemanager.php /var/www/pfrost.me/html/directorydoesnotexist/tinyfilemanager.php
 
 
 
