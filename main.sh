@@ -318,9 +318,9 @@ fi
 
 read -p "Enter a username to add to the nginx .htpasswd file: " htpasswd_username
 if test -f '/etc/nginx/.htpasswd'; then
-    sudo htpasswd /etc/nginx/.htpasswd $htpasswd_username
+    sudo htpasswd -B /etc/nginx/.htpasswd $htpasswd_username
 else
-    sudo htpasswd -c /etc/nginx/.htpasswd $htpasswd_username
+    sudo htpasswd -B -c /etc/nginx/.htpasswd $htpasswd_username
 fi
 echo "#### If you want to add more username/password combinations once your system is setup, run:"
 echo "#### sudo htpasswd /etc/nginx/.htpasswd *desired username*"
