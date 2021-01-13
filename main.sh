@@ -292,21 +292,32 @@ sudo perl -i -pe "s/listen 443 ssl;/listen 443 ssl http2;/g" /etc/nginx/sites-av
 
 
 echo "#### Mounting NAS"
-mkdir -p ~/D-LINKNAS/Volume_1
-mkdir -p ~/D-LINKNAS/Volume_2
+sudo DEBIAN_FRONTEND=noninteractive apt install -y samba samba-common-bin smbclient cifs-utils
+mkdir -p ~/qnap-nas/barracuda
+mkdir -p ~/qnap-nas/wdre4
+mkdir -p ~/qnap-nas/wdblack
 sudo update-rc.d rpcbind enable
 
-if sudo grep -q -- '192.168.7.11/Volume_1' /etc/fstab; then
+if sudo grep -q -- 'qnap-nas' /etc/fstab; then
     echo "#### Already modified fstab"
 else
-    read -p "Enter your NAS login: " nas_login
-    read -sp "Enter your NAS password: " nas_password
     echo "#### Modifying fstab"
-    sudo sh -c "echo \"//192.168.7.11/Volume_1 $HOME/D-LINKNAS/Volume_1 cifs username=${nas_login},password=${nas_password},vers=1.0 0 0\" >> /etc/fstab"
-    sudo sh -c "echo \"//192.168.7.11/Volume_2 $HOME/D-LINKNAS/Volume_2 cifs username=${nas_login},password=${nas_password},vers=1.0 0 0\" >> /etc/fstab"
-    nas_login=""
-    nas_password=""
+    sudo sh -c "echo \"UUID=c4527ab4-5442-43a8-849a-4a700ab19a83 $HOME/qnap-nas/barracuda ext4 defaults,auto,users,rw,nofail 0 0\" >> /etc/fstab"
+    sudo sh -c "echo \"UUID=23317f84-486b-4dde-ab94-0f916efd397e $HOME/qnap-nas/wdre4 ext4 defaults,auto,users,rw,nofail 0 0\" >> /etc/fstab"
+    sudo sh -c "echo \"UUID=78b5ccf9-d43b-45d3-95a3-e0c45c136634 $HOME/qnap-nas/wdblack ext4 defaults,auto,users,rw,nofail 0 0\" >> /etc/fstab"
 fi
+
+sudo tee -a /etc/samba/smb.conf << EOF
+[share]
+    path = /home/frost/qnap-nas
+    read only = no
+    public = yes
+    writable = yes
+    create mask=0777
+	directory mask=0777
+EOF
+sudo systemctl restart smbd
+
 #### Equivalent to using the Wait for Network at Boot option in raspi-config
 sudo raspi-config nonint do_boot_wait 0
 
@@ -329,7 +340,7 @@ echo
 htpasswd_username=""
 
 sudo mkdir -p /var/www/pfrost.me/html/directorydoesnotexist
-sudo ln -s -i -v ~/D-LINKNAS /var/www/pfrost.me/html/directorydoesnotexist 
+sudo ln -s -i -v ~/qnap-nas /var/www/pfrost.me/html/directorydoesnotexist 
 
 
 
