@@ -75,8 +75,11 @@ echo "#### Upgrading packages"
 sudo apt upgrade -y
 echo "#### Upgrading distribution"
 sudo apt full-upgrade -y
+echo "#### Getting prerequisites to build nginx and openssl"
+sudo apt install -y -t testing build-essential gcc libio-socket-ssl-perl goaccess nodejs npm golang
+sudo apt-get build-dep -y -t testing nginx-full openssl
 echo "#### Installing packages"
-sudo apt install -y git man build-essential make nano sqlite3 \
+sudo apt install -y git man make nano sqlite3 \
 libpam-google-authenticator mumble-server certbot python-certbot-nginx \
 fail2ban ipset nmap postfix mutt apache2-utils tree dpkg-dev software-properties-common \
 libbrotli-dev brotli htop wget curl xclip libjson-any-perl perl libdata-validate-ip-perl \
@@ -126,9 +129,7 @@ sudo service ssh reload
 
 
 
-echo "#### Getting prerequisites to build nginx and openssl"
-sudo apt install -y -t testing gcc
-sudo apt-get build-dep -y -t testing nginx-full openssl
+
 
 mkdir -p ~/nginx-build
 mkdir -p ~/openssl-build
@@ -259,7 +260,6 @@ sudo iptables -L INPUT -v --line-numbers
 echo "#### Installing ddclient:"
 #### noninteractive means it skips all the settings
 sudo DEBIAN_FRONTEND=noninteractive apt install -y ddclient
-sudo apt install -y -t testing libio-socket-ssl-perl ddclient
 cd ~
 
 echo "#### Exporting ddclient config:"
@@ -376,7 +376,6 @@ sudo service mumble-server restart
 
 
 echo "#### Installing goaccess"
-sudo apt install -y -t testing goaccess
 cd ~
 read -p "Enter your maxmind license key: " maxmind_license_key
 wget "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=${maxmind_license_key}&suffix=tar.gz" -O GeoLite2-City.tar.gz
@@ -395,8 +394,6 @@ sudo service goaccess status
 
 echo "#### Adding Gitea user"
 sudo adduser --system --group --disabled-password --shell /bin/bash --home /home/gitea --gecos 'Git Version Control' gitea
-echo "#### Installing Gitea dependencies"
-sudo apt install -y -t testing nodejs npm golang
 echo "#### Updating npm"
 npm update --dd
 
