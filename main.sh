@@ -259,11 +259,8 @@ sudo iptables -L INPUT -v --line-numbers
 echo "#### Installing ddclient:"
 #### noninteractive means it skips all the settings
 sudo DEBIAN_FRONTEND=noninteractive apt install -y ddclient
-sudo apt install -y -t testing libio-socket-ssl-perl
+sudo apt install -y -t testing libio-socket-ssl-perl ddclient
 cd ~
-echo "#### Cloning latest ddclient:"
-git clone https://github.com/ddclient/ddclient.git
-sudo cp -f ddclient/ddclient /usr/sbin/
 
 echo "#### Exporting ddclient config:"
 sudo mkdir -p /etc/ddclient
