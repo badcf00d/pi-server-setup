@@ -291,9 +291,7 @@ sudo perl -i -pe "s/listen 443 ssl;/listen 443 ssl http2;/g" /etc/nginx/sites-av
 
 echo "#### Mounting NAS"
 sudo DEBIAN_FRONTEND=noninteractive apt install -y samba samba-common-bin smbclient cifs-utils
-mkdir -p ~/qnap-nas/barracuda
-mkdir -p ~/qnap-nas/wdre4
-mkdir -p ~/qnap-nas/wdblack
+mkdir -p ~/qnap-nas/barracuda ~/qnap-nas/wdre4 ~/qnap-nas/wdblack
 sudo update-rc.d rpcbind enable
 
 if sudo grep -q -- 'qnap-nas' /etc/fstab; then
@@ -304,6 +302,8 @@ else
     sudo sh -c "echo \"UUID=23317f84-486b-4dde-ab94-0f916efd397e $HOME/qnap-nas/wdre4 ext4 defaults,auto,users,rw,nofail 0 0\" >> /etc/fstab"
     sudo sh -c "echo \"UUID=78b5ccf9-d43b-45d3-95a3-e0c45c136634 $HOME/qnap-nas/wdblack ext4 defaults,auto,users,rw,nofail 0 0\" >> /etc/fstab"
 fi
+
+sudo mount -a
 
 sudo tee -a /etc/samba/smb.conf << EOF
 [share]
@@ -317,7 +317,7 @@ EOF
 sudo systemctl restart smbd
 
 #### Equivalent to using the Wait for Network at Boot option in raspi-config
-sudo raspi-config nonint do_boot_wait 0
+#sudo raspi-config nonint do_boot_wait 0
 
 echo "#### Adding cronjob"
 if sudo crontab -l | sudo grep -q -- '@reboot mount -a'; then
