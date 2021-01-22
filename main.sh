@@ -348,10 +348,11 @@ sudo ln -s -i -v ~/qnap-nas /var/www/pfrost.me/html/directorydoesnotexist
 echo "#### Setting up tinyfilemanager"
 cd ~
 git clone https://github.com/prasathmani/tinyfilemanager.git
-perl -i -pe "s/$use_auth = */$use_auth = false;/" /home/frost/tinyfilemanager/tinyfilemanager.php
-perl -i -pe "s/$root_path = */$root_path = $_SERVER['DOCUMENT_ROOT'].'/directorydoesnotexist';/" /home/frost/tinyfilemanager/tinyfilemanager.php
-perl -i -pe "s/$root_url = */$root_url = 'directorydoesnotexist';/" /home/frost/tinyfilemanager/tinyfilemanager.php
-perl -i -pe "s/$edit_files = */$edit_files = false;/" /home/frost/tinyfilemanager/tinyfilemanager.php
+
+sed -i '0,/$use_auth =.*/ s//$use_auth = false;/' /home/frost/tinyfilemanager/tinyfilemanager2.php
+sed -i '0,/$root_path =.*/ s//$root_path = $_SERVER['\''DOCUMENT_ROOT'\''].'\''\/directorydoesnotexist'\'';/' /home/frost/tinyfilemanager/tinyfilemanager2.php
+sed -i '0,/$root_url =.*/ s//$root_url = '\''directorydoesnotexist'\'';/' /home/frost/tinyfilemanager/tinyfilemanager2.php
+sed -i '0,/$edit_files =.*/ s//$edit_files = false;/' /home/frost/tinyfilemanager/tinyfilemanager2.php
 
 sudo ln -s /home/frost/tinyfilemanager/tinyfilemanager.php /var/www/pfrost.me/html/directorydoesnotexist/tinyfilemanager.php
 
