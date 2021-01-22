@@ -158,7 +158,7 @@ echo "#### Building nginx, this takes about 10 minutes on an rpi 3"
 dpkg-buildpackage -b --no-sign
 cd ..
 echo "#### Installing nginx"
-sudo apt install -y --allow-downgrades -t testing ./nginx-core_*_armhf.deb ./nginx-common_*_all.deb ./nginx-full_*_armhf.deb
+sudo apt install -y --allow-downgrades -t testing ./nginx-core_*_armhf.deb ./nginx-common_*_all.deb ./nginx-full_*_all.deb ./libnginx-mod*.deb
 
 
 
@@ -186,6 +186,7 @@ else
 fi
 
 sudo ln -s -i -v /etc/nginx/sites-available/pfrost.me /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo service nginx restart
 
