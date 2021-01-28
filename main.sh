@@ -384,7 +384,9 @@ maxmind_license_key=""
 tar -xzf GeoLite2-City.tar.gz
 
 echo "#### Exporting goaccess setup"
-sudo sh -c "cat ${HOME}/pi-server-setup/goaccess_service_config > /etc/systemd/system/goaccess.service"
+crontab -l | { cat; echo "@reboot zcat -f /var/log/nginx/access.log.*.gz | goaccess -o /var/www/pfrost.me/html/goaccess.html \
+ --log-format=COMBINED --real-time-html --geoip-database /home/frost/GeoLite2-City_20210119/GeoLite2-City.mmdb \
+ --ws-url=wss://pfrost.me/ws:443 --daemonize /var/log/nginx/access.log /var/log/nginx/access.log.1 - "; echo; } | crontab - ;
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now goaccess
