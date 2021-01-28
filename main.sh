@@ -264,12 +264,11 @@ sudo DEBIAN_FRONTEND=noninteractive apt install -y ddclient
 cd ~
 
 echo "#### Exporting ddclient config:"
-sudo mkdir -p /etc/ddclient
-sudo sh -c "cat ${HOME}/pi-server-setup/ddclient_config > /etc/ddclient/ddclient.conf"
+sudo sh -c "cat ${HOME}/pi-server-setup/ddclient_config > /etc/ddclient.conf"
 read -p "Enter your cloudflare login: " cloudflare_login
 read -p "Enter your cloudflare global API key: " cloudflare_api_key
-sudo perl -i -pe "s/login=.*/login=${cloudflare_login}/" /etc/ddclient/ddclient.conf
-sudo perl -i -pe "s/password=.*/password=${cloudflare_api_key}/" /etc/ddclient/ddclient.conf
+sudo perl -i -pe "s/login=.*/login=${cloudflare_login}/" /etc/ddclient.conf
+sudo perl -i -pe "s/password=.*/password=${cloudflare_api_key}/" /etc/ddclient.conf
 cloudflare_login=""
 cloudflare_api_key=""
 
